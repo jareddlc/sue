@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="http://qrohlf.com/trianglify/favicon.png?v=3">
+
+    <title>Sous-vide</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+      html, body {
+        margin: 0 0;
+        padding: 0 0;
+        text-align: center;
+      }
+      body {
+        background-color: #eeeeee;
+        font-family: proxima-nova, "Proxima Nova", sans-serif;
+        text-align: center;
+        color: #4d4d4d;
+      }
+      .sv-container {
+        padding-top: 64px;
+        font-weight: 300;
+      }
+      .sv-temp {
+        font-size: 128px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container sv-container">
+
+      <div class="row">
+        <div class="col-xs-12 col-med-6 col-med-offset-3">
+          <div class="sv-temp">
+            <span id=svTemp>0.0</span>°
+          </div>
+
+          <div class="row">
+            <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-5">
+              <div class="input-group">
+                <input type="number" class="form-control" id="temp" aria-describedby="temp-addon" placeholder="Temp">
+                <span class="input-group-addon btn btn-default" id="temp-addon" onclick="setTemperature()">submit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+
+  <!-- JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/trianglify/0.4.0/trianglify.min.js"></script>
+  <script type="text/javascript">
+      var svTemp = document.getElementById('svTemp');
+      var temp = document.getElementById('temp');
+      var pattern = Trianglify({
+          width: window.screen.availWidth + 10,
+          height: window.screen.availHeight + 10
+      });
+      document.body.setAttribute('style', 'background-image: url(' + pattern.png() + ')');
+
+      var setTemperature = function setTemperature() {
+        if(!temp.value || temp.value < 0) {
+          return alert('Please select valid temperature');
+        }
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4 && xhr.status != 200) {
+                alert('Error setting temperature');
+            }
+        };
+        xhr.open('POST', '/api/temp', true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(JSON.stringify({temp: temp.value}));
+      };
+
+      var getTemperature = function getTemperature() {
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4 && xhr.status == 200) {
+                var data = JSON.parse(xhr.responseText);
+                svTemp.innerHTML = data.temp.toFixed(1) || 0;
+            }
+        };
+        xhr.open('GET', '/api/temp', true);
+        xhr.send();
+      };
+      getTemperature();
+      setInterval(getTemperature, 5000);
+  </script>
+</html>

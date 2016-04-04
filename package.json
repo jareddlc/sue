@@ -1,0 +1,19 @@
+{
+  "name": "sue",
+  "version": "1.0.0",
+  "description": "sous-vide web server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jareddlc/sue.git"
+  },
+  "author": "Jared De La Cruz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jareddlc/sue/issues"
+  },
+  "homepage": "https://github.com/jareddlc/sue#readme"
+}
