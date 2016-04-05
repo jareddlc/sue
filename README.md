@@ -6,6 +6,7 @@ It allows the user to set a target temperature via a web page and monitor the te
 
 1. UnwiredOne (openwrt dev board)
 2. ds18b20 (1-wire temperature sensor)
+3. transistor (p2n2 222a)
 
 ###### Dependencies
 
@@ -41,6 +42,15 @@ reboot device
 $ reboot
 ```
 
+###### Installing
+
+1. move the files to the device (replace the ip with the ip of the device)
+
+```
+$ scp index.js root@192.168.1.10:/root/sue/
+$ scp index.html root@192.168.1.10:/root/sue/
+```
+
 ###### Running
 
 1. edit `index.js` and change the `RELAY_PIN` to the data pin of the ds18b20 sensor
@@ -49,7 +59,6 @@ $ reboot
 ```
 $ node index.js
 ```
-
 
 access the web server from a browser
 `127.0.0.1:8080` or by the device ip:8080
