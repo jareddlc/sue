@@ -19,6 +19,7 @@ var TEMP_SENSOR = 0.0;
 var RELAY_PIN = 15;
 var GPIO_PATH = '';
 var SENSOR_PATH = '';
+var TIMER = 0;
 
 // find gpio path
 if(fs.existsSync(newPath)) {
@@ -39,7 +40,7 @@ var server = http.createServer(function(req, res) {
   if(req.url === '/api/temp') {
     if(req.method === 'GET') {
       res.writeHead(200, {'Content-Type': 'application/json'});
-      res.end(JSON.stringify({temp: TEMP_SENSOR}));
+      res.end(JSON.stringify({temp: TEMP_SENSOR, target: TEMP_TARGET}));
     }
     if(req.method === 'POST') {
       var body = [];
@@ -53,6 +54,40 @@ var server = http.createServer(function(req, res) {
           data = JSON.parse(Buffer.concat(body).toString());
           TEMP_TARGET = parseInt(data.temp, 10);
           console.log('setting target temperature to: ' + TEMP_TARGET);
+        }
+        catch(e) {
+          console.error('error: could not parse body');
+        }
+
+        if(data !== null) {
+          res.writeHead(200, 'OK', {'Content-Type': 'text/html'});
+          res.end();
+        }
+        else {
+          res.writeHead(400, 'could not parse body', {'Content-Type': 'text/html'});
+          res.end();
+        }
+      });
+    }
+  }
+  else if(req.url === '/api/timer') {
+    if(req.method === 'GET') {
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify({timer: TIMER}));
+    }
+    if(req.method === 'POST') {
+      var body = [];
+      var data = null;
+      req.on('data', function(chunk) {
+        body.push(chunk);
+      });
+
+      req.on('end', function() {
+        try {
+          data = JSON.parse(Buffer.concat(body).toString());
+          TIMER = parseInt(data.timer, 10);
+          var timer = new Date(TIMER);
+          console.log('setting timer to: ' + timer);
         }
         catch(e) {
           console.error('error: could not parse body');
@@ -84,9 +119,11 @@ function setupPin(pin, direction) {
   exec(command, function(err, stdout, stderr) {
     if(err) {
       if(err.message.indexOf('write error: Device or resource busy') >= 0) {
-        console.log('expected okay');
+        console.log('warning: device is busy');
       }
-      console.error('error: trying to setup pin ' + pin);
+      else {
+        console.error('error: trying to setup pin ' + pin);
+      }
     }
 
     setDirection(pin, direction);
@@ -153,6 +190,12 @@ function getTemperature() {
 }
 
 function monitorTemperature() {
+  var now = Date.now();
+  if(TIMER !== 0 && now > TIMER) {
+    console.log('Timer expired, turning off relay');
+    setPinValue(RELAY_PIN, low);
+    return;
+  }
   if(TEMP_SENSOR >= TEMP_TARGET) {
     setPinValue(RELAY_PIN, low);
   }

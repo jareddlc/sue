@@ -22,12 +22,28 @@
         text-align: center;
         color: #4d4d4d;
       }
+      .sv-group-addon {
+        padding: 0;
+      }
       .sv-container {
         padding-top: 64px;
         font-weight: 300;
       }
-      .sv-temp {
+      .cur-temp {
         font-size: 128px;
+      }
+      .tar-temp {
+        padding-top: 20px;
+        font-size: 20px;
+      }
+      .pad-top {
+        padding-top: 10px;
+      }
+      .hour-info {
+        font-size: 12px;
+      }
+      .timer {
+        font-size: 12px;
       }
     </style>
   </head>
@@ -37,8 +53,8 @@
 
       <div class="row">
         <div class="col-xs-12 col-med-6 col-med-offset-3">
-          <div class="sv-temp">
-            <span id=svTemp>0.0</span>°
+          <div class="cur-temp">
+            <span id=curTemp>0.0</span>°
           </div>
 
           <div class="row">
@@ -46,6 +62,27 @@
               <div class="input-group">
                 <input type="number" class="form-control" id="temp" aria-describedby="temp-addon" placeholder="Temp">
                 <span class="input-group-addon btn btn-default" id="temp-addon" onclick="setTemperature()">submit</span>
+              </div>
+            </div>
+            <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-5">
+              <div class="row pad-top">
+                <div class="input-group">
+                  <input type="number" class="form-control" id="hour" placeholder="Hour">
+                  <div class="input-group-addon sv-group-addon">:</div>
+                  <input type="number" class="form-control" id="minute" placeholder="Min">
+                  <span class="input-group-addon btn btn-default" id="timer-addon" onclick="setTimer()">submit</span>
+                </div>
+                <span class="hour-info">(24 hour)</span>
+              </div>
+            </div>
+            <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-5">
+              <div class="tar-temp">
+                Target temp: <span id=tarTemp>0.0</span>°
+              </div>
+            </div>
+            <div class="col-xs-6 col-xs-offset-3 col-md-2 col-md-offset-5">
+              <div class="">
+                <span id="timer"></span>
               </div>
             </div>
           </div>
@@ -58,8 +95,11 @@
   <!-- JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/trianglify/0.4.0/trianglify.min.js"></script>
   <script type="text/javascript">
-      var svTemp = document.getElementById('svTemp');
+      var curTemp = document.getElementById('curTemp');
       var temp = document.getElementById('temp');
+      var hour = document.getElementById('hour');
+      var minute = document.getElementById('minute');
+      var timer = document.getElementById('timer');
       var pattern = Trianglify({
           width: window.screen.availWidth + 10,
           height: window.screen.availHeight + 10
@@ -88,7 +128,9 @@
         xhr.onreadystatechange = function() {
             if(xhr.readyState == 4 && xhr.status == 200) {
                 var data = JSON.parse(xhr.responseText);
-                svTemp.innerHTML = data.temp.toFixed(1) || 0;
+
+                curTemp.innerHTML = data.temp.toFixed(1) || 0;
+                tarTemp.innerHTML = data.target.toFixed(1) || 0;
             }
         };
         xhr.open('GET', '/api/temp', true);
@@ -96,5 +138,57 @@
       };
       getTemperature();
       setInterval(getTemperature, 5000);
+
+      var setTimer = function setTimer() {
+        if(!hour.value || hour.value < 0) {
+          return alert('Please select valid hour');
+        }
+        if(!minute.value || minute.value < 0) {
+          return alert('Please select valid minute');
+        }
+        var timer = new Date();
+        timer.setHours(hour.value);
+        timer.setMinutes(minute.value);
+
+        if(hour.value === '0' && minute.value === '0') {
+          timer = 0;
+        }
+        else {
+          timer = timer.getTime();
+        }
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4 && xhr.status != 200) {
+                alert('Error setting temperature');
+            }
+        };
+        xhr.open('POST', '/api/timer', true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(JSON.stringify({timer: timer}));
+      };
+
+      var getTimer = function getTimer() {
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4 && xhr.status == 200) {
+                var data = JSON.parse(xhr.responseText);
+
+                if(data.timer > 0) {
+                  var d = new Date(data.timer);
+                  timer.innerHTML = d.toLocaleString();
+                }
+                else {
+                  timer.innerHTML = '';
+                }
+            }
+        };
+        xhr.open('GET', '/api/timer', true);
+        xhr.send();
+      };
+      getTimer();
+      setInterval(getTimer, 5000);
+
   </script>
 </html>
