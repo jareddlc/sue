@@ -2,6 +2,8 @@
 sue is a sous-vide web server that runs on linux devices with GPIO (openwrt devices, raspberry pi, etc).
 It allows the user to set a target temperature via a web page and monitor the temperature sensor for changes. The web server will toggle a relay to turn on/off a device (crock pot) based on the temperature sensor.
 
+![suejs](https://user-images.githubusercontent.com/1082238/30627018-8e6ca5b0-9d82-11e7-9f94-6aef325f3c90.png)
+
 ###### Parts
 
 1. UnwiredOne (openwrt dev board)
